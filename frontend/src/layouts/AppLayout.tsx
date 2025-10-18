@@ -8,6 +8,15 @@ export default function AppLayout() {
 
         <nav className="nav">
           <NavLink
+            to="/play"
+            className={({ isActive }) =>
+              "nav-item" + (isActive ? " active" : "")
+            }
+          >
+            ♟️ Freies Spiel
+          </NavLink>
+
+          <NavLink
             to="/coord-blitz"
             className={({ isActive }) =>
               "nav-item" + (isActive ? " active" : "")
