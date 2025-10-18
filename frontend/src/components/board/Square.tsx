@@ -8,7 +8,7 @@ type SquareProps = {
   lastTo?: boolean;
   target?: "dot" | "ring";
   children?: ReactNode;
-} & React.HTMLAttributes<HTMLDivElement>; // <- important
+} & React.HTMLAttributes<HTMLDivElement>;
 
 export default function Square({
   light,

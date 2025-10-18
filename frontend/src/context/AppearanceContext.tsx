@@ -45,14 +45,62 @@ const THEME_COLORS: Record<ThemeKey, { light: string; dark: string }> = {
   blue: { light: "#f2f6fa", dark: "#5596f2" },
   brown: { light: "#edd6b0", dark: "#b88762" },
   lightBlue: { light: "#f0f1f0", dark: "#c4d8e4" },
-  mono: { light: "#ffffff", dark: "#646464ff" },
+  mono: { light: "#ffffff", dark: "#646464" },
   custom: { light: DEFAULT_STATE.customLight, dark: DEFAULT_STATE.customDark },
 };
 
+/* ---------- tiny color helpers ---------- */
+function clamp01(n: number) {
+  return Math.min(1, Math.max(0, n));
+}
+function hexToRgb(hex: string) {
+  const h = hex.replace("#", "");
+  const v =
+    h.length === 3
+      ? h
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : h;
+  const n = parseInt(v, 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+function rgbaString(hex: string, a = 1) {
+  const { r, g, b } = hexToRgb(hex);
+  return `rgba(${r}, ${g}, ${b}, ${clamp01(a)})`;
+}
+function mix(hexA: string, hexB: string, t: number) {
+  t = clamp01(t);
+  const A = hexToRgb(hexA),
+    B = hexToRgb(hexB);
+  const r = Math.round(A.r + (B.r - A.r) * t);
+  const g = Math.round(A.g + (B.g - A.g) * t);
+  const b = Math.round(A.b + (B.b - A.b) * t);
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
+
 function applyCssVariables(light: string, dark: string) {
+  // Derived UI colors from theme
+  const selBg = mix(light, dark, 0.35); // selected square
+  const lastMoveBg = mix(light, dark, 0.25); // last move squares
+  const ringColor = rgbaString(dark, 0.65); // move ring stroke
+  const moveDot = rgbaString(dark, 0.3); // quiet move dot
+  const danger = "#ef4444"; // red
+  const dangerGlow = "rgba(239, 68, 68, 0.55)";
+
   const root = document.documentElement;
   root.style.setProperty("--light", light);
   root.style.setProperty("--dark", dark);
+
+  // NEW: theme-driven UI accents
+  root.style.setProperty("--sel-bg", selBg);
+  root.style.setProperty("--lastmove-bg", lastMoveBg);
+  root.style.setProperty("--ring-color", ringColor);
+  root.style.setProperty("--move-dot", moveDot);
+
+  // King in check / mate glow
+  root.style.setProperty("--king-danger", danger);
+  root.style.setProperty("--king-danger-glow", dangerGlow);
 }
 
 const Ctx = createContext<AppearanceContextValue | null>(null);

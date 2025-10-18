@@ -112,7 +112,6 @@ export default function PlayBoard() {
     selectWithTargets(from);
     beginGhost(e);
   }
-
   function onPieceDrag(e: React.DragEvent<HTMLImageElement>) {
     moveGhost(e.clientX, e.clientY);
   }
@@ -158,14 +157,12 @@ export default function PlayBoard() {
       selectWithTargets(null);
       return;
     }
-
     if (select(to)) {
       if (!selectWithTargets(to)) selectWithTargets(null);
     } else {
       selectWithTargets(null);
     }
   }
-
   function onDragEnd() {
     dragFrom.current = null;
     endGhost();
@@ -215,6 +212,14 @@ export default function PlayBoard() {
                 ? "dot"
                 : undefined;
 
+              const isCheckedKing =
+                !!sq && sq.type === "k" && sq.color === turn && game.isCheck();
+              const dangerClass = isCheckedKing
+                ? game.isCheckmate()
+                  ? "king-mate"
+                  : "king-danger"
+                : undefined;
+
               return (
                 <Square
                   key={coord}
@@ -227,6 +232,7 @@ export default function PlayBoard() {
                   onClick={() => onSquareClick(coord)}
                   onDragOver={(e) => onDragOverSquare(e, coord)}
                   onDrop={(e) => onDropOnSquare(e, coord)}
+                  className={dangerClass}
                 >
                   {sq && (
                     <PieceImage

@@ -2,116 +2,54 @@
  * 1) CSS VARIABLES
  *********************************************/
 :root {
+  /* Board colors (set by AppearanceContext) */
   --light: #f2f6fa;
   --dark: #5596f2;
-  --highlight: rgba(255, 215, 0, 0.6);
-  --move-dot: rgba(0, 0, 0, 0.25);
-  --sel: #4caf50;
+
+  /* Themed UI accents (these get overwritten by AppearanceContext) */
+  --sel-bg: #4cbbe9;
+  --lastmove-bg: #9bebed;
+  --ring-color: rgba(0,0,0,0.35);
+  --move-dot: rgba(0,0,0,0.25);
+
+  /* Danger (king in check) */
+  --king-danger: #ef4444;
+  --king-danger-glow: rgba(239,68,68,0.55);
 
   /* ====== Sizing & scale ====== */
-  --ui-scale: 1.15; /* master scale; tweak to 1.25 for larger UI */
-
-  /* Board sizing (responsive but bounded) */
+  --ui-scale: 1.15;
   --square-size: clamp(70px, calc(9vmin * var(--ui-scale)), 104px);
-
-  /* IMPORTANT: no gap between squares */
   --board-gap: 0px;
-
-  /* Außenkoordinaten */
   --axis-size: clamp(20px, calc(22px * var(--ui-scale)), 30px);
   --axis-color: #cbd5e1;
 }
-
 
 /*********************************************
  * 2) BASE / RESET
  *********************************************/
 * { box-sizing: border-box; }
-
 body {
   margin: 0;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial;
   background: #0f172a;
   color: #e2e8f0;
 }
-
-/* Optional light theme (kept for future use) */
-body.light {
-  background: #f9fafb;
-  color: #111827;
-}
-
+body.light { background: #f9fafb; color: #111827; }
 
 /*********************************************
- * 3) APP LAYOUT (SHELL / SIDEBAR / CONTENT)
+ * 3) APP LAYOUT
  *********************************************/
-.shell {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: 260px 1fr;
-}
-
-.sidebar {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-
-  background: #0b1220;
-  border-right: 1px solid #1f2937;
-}
-
-.brand {
-  padding: 8px 0 12px;
-  margin-bottom: 8px;
-
-  font-weight: 700;
-  letter-spacing: 0.3px;
-
-  border-bottom: 1px solid #1f2937;
-}
-
+.shell { min-height: 100vh; display: grid; grid-template-columns: 260px 1fr; }
+.sidebar { padding: 16px; display: flex; flex-direction: column; gap: 14px; background: #0b1220; border-right: 1px solid #1f2937; }
+.brand { padding: 8px 0 12px; margin-bottom: 8px; font-weight: 700; letter-spacing: 0.3px; border-bottom: 1px solid #1f2937; }
 .nav { display: flex; flex-direction: column; gap: 6px; }
-
-.nav-item {
-  padding: 10px 12px;
-
-  color: #e5e7eb;
-  text-decoration: none;
-  background: #111827;
-
-  border: 1px solid transparent;
-  border-radius: 6px;
-}
-
-.nav-item:hover {
-  background: #0f172a;
-  border-color: #253046;
-}
-
-.nav-item.active {
-  background: #0b1730;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59,130,246,0.25) inset;
-}
-
-.content {
-  flex: 1;
-  min-height: 100vh;
-  padding: 24px;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  overflow: auto;
-  box-sizing: border-box;
-}
-
+.nav-item { padding: 10px 12px; color: #e5e7eb; text-decoration: none; background: #111827; border: 1px solid transparent; border-radius: 6px; }
+.nav-item:hover { background: #0f172a; border-color: #253046; }
+.nav-item.active { background: #0b1730; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.25) inset; }
+.content { flex: 1; min-height: 100vh; padding: 24px; display: flex; justify-content: center; align-items: center; overflow: auto; box-sizing: border-box; }
 
 /*********************************************
  * 4) BOARD WRAPPER + AXES
@@ -122,102 +60,93 @@ body.light {
   grid-template-columns: var(--axis-size) repeat(8, var(--square-size)) var(--axis-size);
   grid-template-rows: var(--axis-size) repeat(8, var(--square-size)) var(--axis-size);
   gap: var(--board-gap);
-
   background: #111827;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
-
-.axis {
-  display: grid;
-  place-items: center;
-  user-select: none;
-  font-weight: bold;
-  font-size: clamp(12px, calc(12px * var(--ui-scale)), 15px);
-  color: var(--axis-color);
-  opacity: 0.9;
-}
-
+.axis { display: grid; place-items: center; user-select: none; font-weight: bold; font-size: clamp(12px, calc(12px * var(--ui-scale)), 15px); color: var(--axis-color); opacity: 0.9; }
 
 /*********************************************
- * 5) BOARD GRID (8x8)
+ * 5) BOARD GRID
  *********************************************/
 .board {
   grid-column: 2 / span 8;
   grid-row: 2 / span 8;
-
   display: grid;
   grid-template-columns: repeat(8, var(--square-size));
   grid-template-rows: repeat(8, var(--square-size));
   gap: var(--board-gap);
 }
 
-
 /*********************************************
- * 6) SQUARES (FELDER) + STATES
+ * 6) SQUARES + STATES
  *********************************************/
 .square {
   position: relative;
-
   display: grid;
   place-items: center;
   cursor: pointer;
-
   line-height: 0;
   font-size: 0;
-
   border-radius: 0;
   transition: filter 0.1s ease;
 }
-
 .square:hover { filter: brightness(1.05); }
 
 .square.light { background: var(--light); color: #111; }
 .square.dark  { background: var(--dark);  color: #111; }
 
 .square.selected {
-  outline: 4px solid var(--sel);
-  outline-offset: -4px;
+  background: var(--sel-bg) !important;
+  outline: none;
+  color: #111;
 }
 
-/* Move targets */
+/* Move targets (theme-driven) */
 .square.target-dot::after {
   content: "";
   display: block;
-
   width: 18px;
   height: 18px;
-
   background: var(--move-dot);
   border-radius: 50%;
 }
-
 .square.target-circle::after {
   content: "";
   position: absolute;
   inset: 6px;
-
-  border: 4px solid rgba(0, 0, 0, 0.35);
+  border: 4px solid var(--ring-color);
   border-radius: 50%;
   pointer-events: none;
 }
 
-/* Last move highlight (slightly softened when larger) */
-.square.last-from { background: #f6f3a6 !important; }
-.square.last-to   { background: #fbfbdc !important; }
+/* Last move (theme-driven) */
+.square.last-from { background: var(--lastmove-bg) !important; }
+.square.last-to   { background: var(--lastmove-bg) !important; }
 
-/* CoordBlitz feedback flashes */
-.square.flash-ok {
-  outline: 4px solid #22c55e;
-  outline-offset: -4px;
-  box-shadow: inset 0 0 0 4px #22c55e;
+/* Check / Checkmate — blurry red outline */
+.square.king-danger::before,
+.square.king-mate::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 8px;
+  border: 3px solid var(--king-danger);
+  box-shadow:
+    0 0 14px 6px var(--king-danger-glow),
+    inset 0 0 10px 3px var(--king-danger-glow);
+  pointer-events: none;
+  filter: blur(0.2px);
+}
+.square.king-mate::before {
+  border-width: 4px;
+  box-shadow:
+    0 0 18px 8px var(--king-danger-glow),
+    inset 0 0 14px 4px var(--king-danger-glow);
 }
 
-.square.flash-err {
-  outline: 4px solid #ef4444;
-  outline-offset: -4px;
-  box-shadow: inset 0 0 0 4px #ef4444;
-}
-
+/* CoordBlitz flashes (kept) */
+.square.flash-ok  { outline: 4px solid #22c55e; outline-offset: -4px; box-shadow: inset 0 0 0 4px #22c55e; }
+.square.flash-err { outline: 4px solid #ef4444; outline-offset: -4px; box-shadow: inset 0 0 0 4px #ef4444; }
 
 /*********************************************
  * 7) PIECES
@@ -227,29 +156,21 @@ body.light {
   width: 88%;
   height: 88%;
   margin: auto;
-
   object-fit: contain;
   pointer-events: none;
-
   transition: transform 150ms ease-in-out, opacity 150ms ease;
   will-change: transform, opacity;
 }
-
-.piece-draggable {
-  pointer-events: auto;
-}
-
+.piece-draggable { pointer-events: auto; }
 
 /*********************************************
- * 8) ANIMATIONS (CAPTURE POP)
+ * 8) ANIMATIONS
  *********************************************/
 @keyframes captureFade {
   0%   { transform: scale(1);    opacity: 1; }
   100% { transform: scale(1.15); opacity: 0; }
 }
-
 .square.captured .piece { animation: captureFade 0.2s forwards; }
-
 
 /*********************************************
  * 9) GENERIC BUTTONS / INFO
@@ -265,257 +186,91 @@ button {
 }
 button:hover { background: #111827; }
 
-
 /*********************************************
- * 10) MOVE LIST (optional module)
+ * 10) MOVE LIST
  *********************************************/
 .move-list {
   min-width: 170px;
   max-height: calc(var(--square-size) * 8 + var(--board-gap) * 7);
   padding: 8px 12px;
-
   color: #e5e7eb;
   background: #111827;
   border: 1px solid #374151;
   border-radius: 6px;
-
   overflow-y: auto;
-
-  font-family:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
-
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: clamp(13px, calc(14px * var(--ui-scale)), 16px);
 }
-
 .move-list-title { margin-bottom: 6px; font-weight: 600; opacity: 0.9; }
 .move-table      { display: flex; flex-direction: column; gap: 2px; }
-
 .move-header,
-.move-row {
-  display: grid;
-  grid-template-columns: 36px 1fr 1fr;
-  column-gap: 8px;
-  align-items: center;
-  padding: 2px 0;
-}
-
-.move-header {
-  margin-bottom: 4px;
-  font-weight: 600;
-  border-bottom: 1px solid #253046;
-}
-
+.move-row { display: grid; grid-template-columns: 36px 1fr 1fr; column-gap: 8px; align-items: center; padding: 2px 0; }
+.move-header { margin-bottom: 4px; font-weight: 600; border-bottom: 1px solid #253046; }
 .move-row { border-bottom: 1px dashed #253046; }
 .move-row:last-child { border-bottom: 0; }
-
 .move-row span { text-align: left; }
 .move-row .num { opacity: 0.8;  }
-
 
 /*********************************************
  * 11) MODAL (GAME OVER)
  *********************************************/
 .overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
-
-  display: grid;
-  place-items: center;
-
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: rgba(0, 0, 0, 0.45);
+  z-index: 2000;
 }
-
 .modal {
-  padding: 18px 22px;
-
+  padding: 24px 28px;
   color: #fff;
   text-align: center;
   background: #111827;
   border: 1px solid #374151;
-  border-radius: 8px;
-}
-
-
-/*********************************************
- * 12) COORD BLITZ — REDESIGN
- *********************************************/
-.cb {
-  width: min(1100px, 100%);
-  display: grid;
-  gap: 14px;
-}
-
-/* Toolbar */
-.cb-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #0b1220;
-  border: 1px solid #1f2a44;
-  padding: 10px 14px;
   border-radius: 10px;
-  gap: 12px;
-  flex-wrap: wrap;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  max-width: 320px;
+  width: 90%;
 }
+/*********************************************
+ * 12) COORD BLITZ — REDESIGN (unchanged below)
+ *********************************************/
+.cb { width: min(1100px, 100%); display: grid; gap: 14px; }
+.cb-toolbar { display: flex; justify-content: space-between; align-items: center; background: #0b1220; border: 1px solid #1f2a44; padding: 10px 14px; border-radius: 10px; gap: 12px; flex-wrap: wrap; }
 .cb-left, .cb-right { display: flex; gap: 8px; flex-wrap: wrap; }
-.pill {
-  padding: 8px 12px;
-  border-radius: 999px;
-  border: 1px solid #2a3a56;
-  background: #0f1a2f;
-  color: #e5e7eb;
-  cursor: pointer;
-  font-size: clamp(13px, calc(14px * var(--ui-scale)), 16px);
-}
+.pill { padding: 8px 12px; border-radius: 999px; border: 1px solid #2a3a56; background: #0f1a2f; color: #e5e7eb; cursor: pointer; font-size: clamp(13px, calc(14px * var(--ui-scale)), 16px); }
 .pill:hover { background: #0c1526; border-color: #35507c; }
 .pill.active { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.25) inset; }
 .pill.on     { border-color: #ef4444; box-shadow: 0 0 0 2px rgba(239,68,68,.2) inset; }
 .pill.ghost  { background: transparent; }
 .pill.main   { background: #13305d; border-color: #2c4e84; }
 .pill.main:hover { background: #0e2549; }
-
-/* Center target display in toolbar */
-.cb-center {
-  flex: 1 1 220px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  min-width: 200px;
-}
-.cb-center-label {
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: .4px;
-  color: #9fb4d3;
-  padding: 3px 8px;
-  border: 1px solid #1f2a44;
-  background: #0e1a2e;
-  border-radius: 999px;
-}
-.cb-center-task {
-  font-size: 24px;
-  letter-spacing: .5px;
-  font-weight: 700;
-}
-
-/* Progress */
-.cb-progress-bar {
-  position: relative;
-  height: clamp(10px, calc(10px * var(--ui-scale)), 14px);
-  background: #0f172a;
-  border: 1px solid #24324a;
-  border-radius: 999px;
-  overflow: hidden;
-}
-.cb-progress-bar .fill {
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, #3b82f6, #60a5fa);
-  transition: width 160ms ease;
-}
-.cb-progress-bar .legend {
-  position: absolute;
-  top: -22px;
-  right: 0;
-  font-size: 12px;
-  color: #cbd5e1;
-}
-
-/* Main area: board + stats */
-.cb-main {
-  display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: 16px;
-  align-items: start;
-}
-@media (max-width: 980px) {
-  .cb-main { grid-template-columns: 1fr; }
-}
-
-/* Cards */
-.cb-card {
-  background: #0b1220;
-  border: 1px solid #1f2a44;
-  border-radius: 12px;
-  padding: 12px;
-}
+.cb-center { flex: 1 1 220px; display: flex; align-items: center; justify-content: center; gap: 10px; min-width: 200px; }
+.cb-center-label { font-size: 13px; text-transform: uppercase; letter-spacing: .4px; color: #9fb4d3; padding: 3px 8px; border: 1px solid #1f2a44; background: #0e1a2e; border-radius: 999px; }
+.cb-center-task { font-size: 24px; letter-spacing: .5px; font-weight: 700; }
+.cb-progress-bar { position: relative; height: clamp(10px, calc(10px * var(--ui-scale)), 14px); background: #0f172a; border: 1px solid #24324a; border-radius: 999px; overflow: hidden; }
+.cb-progress-bar .fill { height: 100%; width: 0%; background: linear-gradient(90deg, #3b82f6, #60a5fa); transition: width 160ms ease; }
+.cb-progress-bar .legend { position: absolute; top: -22px; right: 0; font-size: 12px; color: #cbd5e1; }
+.cb-main { display: grid; grid-template-columns: 1fr 280px; gap: 16px; align-items: start; }
+@media (max-width: 980px) { .cb-main { grid-template-columns: 1fr; } }
+.cb-card { background: #0b1220; border: 1px solid #1f2a44; border-radius: 12px; padding: 12px; }
 .cb-board-card { display: grid; place-items: center; }
-
-/* Stats card */
-.cb-stats-card h3 {
-  margin: 6px 0 10px;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-}
-.cb-stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px 12px;
-}
-.stat {
-  display: grid;
-  grid-template-columns: 28px auto;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 10px;
-  background: #0f172a;
-  border: 1px solid #24324a;
-  border-radius: 8px;
-}
+.cb-stats-card h3 { margin: 6px 0 10px; font-size: 16px; font-weight: 700; letter-spacing: 0.4px; }
+.cb-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+.stat { display: grid; grid-template-columns: 28px auto; align-items: center; gap: 6px; padding: 8px 10px; background: #0f172a; border: 1px solid #24324a; border-radius: 8px; }
 .stat .k { opacity: .9; }
 .stat .v { font-weight: 700; }
 .stat .l { font-size: 12px; opacity: .75; grid-column: 2; }
-
-.cb-help {
-  margin-top: 10px;
-  font-size: 12px;
-  color: #cbd5e1;
-  opacity: .85;
-}
-.cb-help .keys span {
-  padding: 2px 6px;
-  border: 1px solid #24324a;
-  border-radius: 6px;
-  background: #0f172a;
-}
-
-/* Summary & hint */
-.cb-summary-card {
-  margin: 4px 0 0;
-  text-align: center;
-  background: #0b1220;
-  border: 1px solid #1f2a44;
-  border-radius: 10px;
-  padding: 12px 18px;
-}
-.cb-hint {
-  margin: 6px 0 0;
-  text-align: center;
-  opacity: .7;
-}
-
+.cb-help { margin-top: 10px; font-size: 12px; color: #cbd5e1; opacity: .85; }
+.cb-help .keys span { padding: 2px 6px; border: 1px solid #24324a; border-radius: 6px; background: #0f172a; }
 
 /*********************************************
- * 13) BOARD AREA LAYOUT (board + move list) – legacy
+ * 13) BOARD AREA LAYOUT (legacy)
  *********************************************/
-.board-area {
-  display: grid;
-  grid-template-columns: 1fr auto;  /* board then move list */
-  gap: calc(18px * var(--ui-scale));
-  align-items: start;
-}
-
-/* stack under ~900px so nothing gets squished */
+.board-area { display: grid; grid-template-columns: 1fr auto; gap: calc(18px * var(--ui-scale)); align-items: start; }
 @media (max-width: 900px) {
-  .board-area {
-    grid-template-columns: 1fr;
-  }
-  .move-list {
-    order: 2;
-    max-width: 100%;
-    min-width: 0;
-  }
+  .board-area { grid-template-columns: 1fr; }
+  .move-list { order: 2; max-width: 100%; min-width: 0; }
 }
