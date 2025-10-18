@@ -17,8 +17,8 @@ body {
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial;
   background: #0f172a;
   color: #e2e8f0;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
 }
 
@@ -132,4 +132,63 @@ button {
 /* Figuren mitdrehen */
 .board-wrap.flipped .piece {
   transform: rotate(180deg);
+}
+
+/* --- App Shell & Sidebar --- */
+.shell {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  background: #0b1220;
+  border-right: 1px solid #1f2937;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.brand {
+  font-weight: 700;
+  letter-spacing: .3px;
+  padding: 8px 0 12px;
+  border-bottom: 1px solid #1f2937;
+  margin-bottom: 8px;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nav-item {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  color: #e5e7eb;
+  text-decoration: none;
+  background: #111827;
+}
+.nav-item:hover {
+  background: #0f172a;
+  border-color: #253046;
+}
+.nav-item.active {
+  border-color: #3b82f6;
+  background: #0b1730;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.25) inset;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  justify-content: center;  
+  align-items: center;     
+  padding: 24px;
+  overflow: auto;           
+  min-height: 100vh;
+  box-sizing: border-box;
 }
