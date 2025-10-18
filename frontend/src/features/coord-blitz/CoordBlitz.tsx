@@ -19,7 +19,7 @@ function randomTarget(): Coord {
   return `${f}${r}` as Coord;
 }
 
-type Trial = { coord: Coord; rt: number }; // korrekte Klicks mit Reaktionszeit
+type Trial = { coord: Coord; rt: number }; 
 
 export default function CoordBlitz() {
   /** Board-Ansicht */
@@ -112,7 +112,7 @@ export default function CoordBlitz() {
   }, [active, mode]);
 
   /** Kurzes Aufblitzen für Feedback */
-  function doFlash(c: Coord, kind: "ok" | "err", d = 200) {
+  function doFlash(c: Coord, kind: "ok" | "err", d = 180) {
     setFlash((f) => ({ ...f, [c]: kind }));
     setTimeout(() => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -132,7 +132,6 @@ export default function CoordBlitz() {
       setTrials((ts) => [...ts, { coord, rt }]);
       doFlash(coord, "ok");
 
-      // Items-Mode runterzählen
       if (mode === "items") {
         setItemsLeft((n) => {
           const next = Math.max(0, n - 1);
@@ -146,7 +145,6 @@ export default function CoordBlitz() {
       setTarget(nxt);
       targetSince.current = performance.now();
     } else {
-      // Fehler-Heatmap
       setErrors((prev) => ({ ...prev, [coord]: (prev[coord] ?? 0) + 1 }));
       doFlash(coord, "err");
     }
@@ -163,11 +161,12 @@ export default function CoordBlitz() {
       if (e.key.toLowerCase() === "f") setFlipped((v) => !v);
       if (e.key.toLowerCase() === "a") setShowAxes((v) => !v);
       if (e.key.toLowerCase() === "h") setShowHeat((v) => !v);
-      if (e.key.toLowerCase() === "t") setMode("time");
-      if (e.key.toLowerCase() === "i") setMode("items");
+      if (e.key.toLowerCase() === "t" && !active) setMode("time");
+      if (e.key.toLowerCase() === "i" && !active) setMode("items");
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
 
   /** Heatmap-Farben */
@@ -181,7 +180,7 @@ export default function CoordBlitz() {
   }
 
   /** UI-Helfer */
-  const taskText = `Klicke Feld ${target}`;
+  const taskText = target.toUpperCase();
   const progressPct =
     mode === "time"
       ? 100 - Math.min(100, Math.round((timeLeft / 60) * 100))
@@ -190,114 +189,161 @@ export default function CoordBlitz() {
   /** --- UI --- */
   return (
     <div className="cb">
-      {/* Header */}
-      <div className="cb-header">
-        <div className="cb-controls">
-          <div className="cb-group">
-            <button className="pill" onClick={active ? stop : start}>
-              {active ? "⏸︎ Stopp" : "▶︎ Start"}
-            </button>
-            <button className="pill" onClick={() => setFlipped((v) => !v)}>
-              🔄 Flip
-            </button>
-            <button className="pill" onClick={() => setShowAxes((v) => !v)}>
-              {showAxes ? "🙈 Koordinaten aus" : "🧭 Koordinaten an"}
-            </button>
-            <button
-              className={`pill ${showHeat ? "on" : ""}`}
-              onClick={() => setShowHeat((v) => !v)}
-            >
-              🔥 Heatmap
-            </button>
-          </div>
-
-          <div className="cb-group">
-            <button
-              className={`pill ${mode === "time" ? "active" : ""}`}
-              onClick={() => setMode("time")}
-              disabled={active}
-            >
-              ⏱︎ 60s
-            </button>
-            <button
-              className={`pill ${mode === "items" ? "active" : ""}`}
-              onClick={() => setMode("items")}
-              disabled={active}
-            >
-              🎯 20
-            </button>
-            {!active && (
-              <button className="pill ghost" onClick={resetSessionState}>
-                ↺ Reset
-              </button>
-            )}
-          </div>
+      {/* Toolbar */}
+      <div className="cb-toolbar">
+        <div className="cb-left">
+          <button className="pill main" onClick={active ? stop : start}>
+            {active ? "⏸ Stop" : "▶ Start"}
+          </button>
+          <button className="pill" onClick={() => setFlipped((v) => !v)}>
+            🔄 Flip
+          </button>
+          <button
+            className={`pill ${showAxes ? "on" : ""}`}
+            onClick={() => setShowAxes((v) => !v)}
+          >
+            🧭 Axes
+          </button>
+          <button
+            className={`pill ${showHeat ? "on" : ""}`}
+            onClick={() => setShowHeat((v) => !v)}
+          >
+            🔥 Heat
+          </button>
         </div>
 
-        {/* Zielanzeige direkt über dem Brett */}
-        <div className="cb-banner-centered">
-          <span className="cb-label">Ziel</span>
-          <strong className="cb-task">{taskText}</strong>
+        <div className="cb-center">
+          <span className="cb-center-label">Ziel</span>
+          <span className="cb-center-task">{taskText}</span>
         </div>
 
-        {/* Fortschritt */}
-        <div className="cb-progress" aria-label="progress">
-          <div className="bar" style={{ width: `${progressPct}%` }} />
+        <div className="cb-right">
+          <button
+            className={`pill ${mode === "time" ? "active" : ""}`}
+            onClick={() => setMode("time")}
+            disabled={active}
+          >
+            ⏱ 60s
+          </button>
+          <button
+            className={`pill ${mode === "items" ? "active" : ""}`}
+            onClick={() => setMode("items")}
+            disabled={active}
+          >
+            🎯 20
+          </button>
+          {!active && (
+            <button className="pill ghost" onClick={resetSessionState}>
+              ↺ Reset
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Statistiken */}
-      <div className="cb-stats">
-        <div className="chip">✔︎ {correct}</div>
-        <div className="chip">🖱︎ {tries}</div>
-        <div className="chip">🎯 {accuracy}%</div>
-        <div className="chip">avg {avg ?? "–"} ms</div>
-        <div className="chip">best {best ?? "–"} ms</div>
-        <div className="chip">worst {worst ?? "–"} ms</div>
+      {/* Progress */}
+      <div className="cb-progress-bar" aria-label="progress">
+        <div className="fill" style={{ width: `${progressPct}%` }} />
+        <div className="legend">
+          {mode === "time"
+            ? `${Math.ceil(timeLeft)}s`
+            : `${ITEMS_TARGET - itemsLeft}/${ITEMS_TARGET}`}
+        </div>
       </div>
 
-      {/* Board-Karte */}
-      <div className="cb-card">
-        <BoardFrame
-          showAxes={showAxes}
-          displayFiles={displayFiles}
-          displayRanks={displayRanks}
-        >
-          <BoardGrid
+      {/* Main Area: Board + Stats */}
+      <div className="cb-main">
+        <div className="cb-card cb-board-card">
+          <BoardFrame
+            showAxes={showAxes}
             displayFiles={displayFiles}
             displayRanks={displayRanks}
-            renderCell={(rIdx, fIdx) => {
-              const coord = toCoord(fIdx, rIdx) as Coord;
-              const fb = flash[coord];
-              const flashCls = fb
-                ? fb === "ok"
-                  ? "flash-ok"
-                  : "flash-err"
-                : "";
-              return (
-                <div
-                  key={coord}
-                  className={`square ${
-                    isLightSquare(fIdx, rIdx) ? "light" : "dark"
-                  } ${flashCls}`}
-                  onClick={() => onClick(coord)}
-                  style={heatStyle(coord)}
-                  title={showAxes ? coord : undefined}
-                />
-              );
-            }}
-          />
-        </BoardFrame>
+          >
+            <BoardGrid
+              displayFiles={displayFiles}
+              displayRanks={displayRanks}
+              renderCell={(rIdx, fIdx) => {
+                const coord = toCoord(fIdx, rIdx) as Coord;
+                const fb = flash[coord];
+                const flashCls = fb
+                  ? fb === "ok"
+                    ? "flash-ok"
+                    : "flash-err"
+                  : "";
+                return (
+                  <div
+                    key={coord}
+                    className={`square ${
+                      isLightSquare(fIdx, rIdx) ? "light" : "dark"
+                    } ${flashCls}`}
+                    onClick={() => onClick(coord)}
+                    style={heatStyle(coord)}
+                    title={showAxes ? coord : undefined}
+                  />
+                );
+              }}
+            />
+          </BoardFrame>
+        </div>
+
+        <aside className="cb-card cb-stats-card">
+          <h3>Stats</h3>
+          <div className="cb-stats-grid">
+            <div className="stat">
+              <span className="k">✔︎</span>
+              <span className="v">{correct}</span>
+              <span className="l">Treffer</span>
+            </div>
+            <div className="stat">
+              <span className="k">🖱︎</span>
+              <span className="v">{tries}</span>
+              <span className="l">Klicks</span>
+            </div>
+            <div className="stat">
+              <span className="k">🎯</span>
+              <span className="v">{accuracy}%</span>
+              <span className="l">Accuracy</span>
+            </div>
+            <div className="stat">
+              <span className="k">⚡</span>
+              <span className="v">{avg ?? "–"} ms</span>
+              <span className="l">avg</span>
+            </div>
+            <div className="stat">
+              <span className="k">🏁</span>
+              <span className="v">{best ?? "–"} ms</span>
+              <span className="l">best</span>
+            </div>
+            <div className="stat">
+              <span className="k">🐢</span>
+              <span className="v">{worst ?? "–"} ms</span>
+              <span className="l">worst</span>
+            </div>
+          </div>
+
+          <div className="cb-help">
+            <div className="keys">
+              <span>Space</span> Start/Stop • <span>F</span> Flip •{" "}
+              <span>A</span> Axes • <span>H</span> Heat • <span>T</span> 60s •{" "}
+              <span>I</span> 20 Ziele
+            </div>
+          </div>
+        </aside>
       </div>
 
       {/* Session-Ergebnis */}
       {!active && tries > 0 && (
-        <p className="cb-summary">
-          Session beendet — Treffer: <strong>{correct}</strong> / {tries}
-          {" • "}Accuracy: <strong>{accuracy}%</strong>
-          {" • "}avg RT: <strong>{avg ?? "–"} ms</strong>
-          {" • "}best: <strong>{best ?? "–"} ms</strong>
-        </p>
+        <div className="cb-summary-card">
+          <h4>Session beendet</h4>
+          <p>
+            Treffer: <strong>{correct}</strong> / {tries} • Accuracy:{" "}
+            <strong>{accuracy}%</strong>
+          </p>
+          <p>
+            ⏱ avg: <strong>{avg ?? "–"} ms</strong> • best:{" "}
+            <strong>{best ?? "–"} ms</strong> • worst:{" "}
+            <strong>{worst ?? "–"} ms</strong>
+          </p>
+        </div>
       )}
 
       {showHeat && (

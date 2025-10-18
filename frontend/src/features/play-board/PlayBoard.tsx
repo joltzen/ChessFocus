@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Square as Sq } from "chess.js";
 import { useBoardOrientation } from "../../hooks/useBoardOrientation";
 import { useChessGame } from "../../hooks/useChessGame";
-import { isLightSquare, pieceSrc } from "../../lib/chess/helpers";
+import { isLightSquare } from "../../lib/chess/helpers";
 import { BoardFrame } from "../../components/board/BoardFrame";
 import { BoardGrid } from "../../components/board/BoardGrid";
 import Square from "../../components/board/Square";
@@ -114,14 +114,9 @@ export default function PlayBoard() {
         <button onClick={reset}>♻️ Neu starten</button>
         <button onClick={onUndo}>↩️ Rückgängig</button>
         <button onClick={() => setFlipped((v) => !v)}>🔄 Brett drehen</button>
-        <div className="coords">
-          Am Zug: {turn === "w" ? "Weiß" : "Schwarz"}
-          {game.isCheck() ? " (Schach!)" : ""}
-          {game.isGameOver() ? " • Partie beendet" : ""}
-        </div>
       </div>
 
-      <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+      <div className="board-area">
         <BoardFrame
           showAxes
           displayFiles={displayFiles}
@@ -186,6 +181,11 @@ export default function PlayBoard() {
                 <span>{black || ""}</span>
               </div>
             ))}
+          </div>
+          <div className="coords">
+            Am Zug: {turn === "w" ? "Weiß" : "Schwarz"}
+            {game.isCheck() ? " (Schach!)" : ""}
+            {game.isGameOver() ? " • Partie beendet" : ""}
           </div>
         </div>
       </div>
