@@ -1,0 +1,92 @@
+:root {
+  --light: #f0d9b5;
+  --dark: #b58863;
+  --highlight: rgba(255, 215, 0, 0.6);
+  --move-dot: rgba(0, 0, 0, 0.25);
+  --sel: #4caf50;
+  --board-gap: 4px;
+  --square-size: 72px; /* bei Bedarf anpassen */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter,
+    Arial;
+  background: #0f172a;
+  color: #e2e8f0;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(8, var(--square-size));
+  grid-template-rows: repeat(8, var(--square-size));
+  gap: var(--board-gap);
+  padding: var(--board-gap);
+  background: #111827;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.square {
+  display: grid;
+  place-items: center;
+  font-size: 42px;
+  user-select: none;
+  cursor: pointer;
+  border-radius: 10px;
+  position: relative;
+}
+
+.square.light {
+  background: var(--light);
+  color: #111;
+}
+.square.dark {
+  background: var(--dark);
+  color: #111;
+}
+
+.square.selected {
+  outline: 4px solid var(--sel);
+  outline-offset: -4px;
+}
+
+.square.highlight::after {
+  content: "";
+  width: 18px;
+  height: 18px;
+  background: var(--move-dot);
+  border-radius: 50%;
+  display: block;
+}
+
+.coords {
+  margin-top: 14px;
+  font-size: 14px;
+  opacity: 0.8;
+  text-align: center;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+button {
+  background: #1f2937;
+  color: #e5e7eb;
+  border: 1px solid #374151;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+button:hover {
+  background: #111827;
+}
