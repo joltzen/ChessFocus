@@ -2,41 +2,40 @@ import React, { useMemo, useState } from "react";
 import Square from "./Square";
 import { Chess, Move } from "chess.js";
 import type { Square as Sq } from "chess.js";
+
 const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const RANKS = [8, 7, 6, 5, 4, 3, 2, 1];
 
-const PIECE_TO_UNICODE: Record<string, string> = {
-  // Weiß
-  P: "♙",
-  N: "♘",
-  B: "♗",
-  R: "♖",
-  Q: "♕",
-  K: "♔",
-  // Schwarz
-  p: "♟",
-  n: "♞",
-  b: "♝",
-  r: "♜",
-  q: "♛",
-  k: "♚",
-};
-
-function toCoord(fileIndex: number, rankIndex: number): Sq {
-  return `${FILES[fileIndex]}${RANKS[rankIndex]}` as Sq;
-}
-
 function isLightSquare(fileIndex: number, rankIndex: number) {
   return (fileIndex + rankIndex) % 2 === 0;
+}
+
+function pieceSrc(color: "w" | "b", type: string) {
+  return `/pieces/${color}${type.toUpperCase()}.svg`;
 }
 
 const Board: React.FC = () => {
   const [game, setGame] = useState(() => new Chess());
   const [selected, setSelected] = useState<Sq | null>(null);
   const [moveTargets, setMoveTargets] = useState<Sq[]>([]);
+  const [flipped, setFlipped] = useState(false);
 
   const board = useMemo(() => game.board(), [game]);
-  const turn = game.turn(); // 'w' | 'b'
+  const turn = game.turn();
+
+  const displayFiles = flipped ? [...FILES].reverse() : FILES;
+  const displayRanks = flipped ? [...RANKS].reverse() : RANKS;
+
+  function internalIndex(rIdx: number, fIdx: number) {
+    const ri = flipped ? 7 - rIdx : rIdx;
+    const fi = flipped ? 7 - fIdx : fIdx;
+    return { ri, fi };
+  }
+  function toCoord(rIdx: number, fIdx: number): Sq {
+    const file = displayFiles[fIdx];
+    const rank = displayRanks[rIdx];
+    return `${file}${rank}` as Sq;
+  }
 
   function handleSquareClick(target: Sq) {
     if (!selected) {
@@ -77,16 +76,19 @@ const Board: React.FC = () => {
   }
 
   function reset() {
-    const fresh = new Chess();
-    setGame(fresh);
+    setGame(new Chess());
     setSelected(null);
     setMoveTargets([]);
+  }
+  function flipBoard() {
+    setFlipped((v) => !v);
   }
 
   return (
     <div>
       <div className="toolbar">
         <button onClick={reset}>♻️ Neu starten</button>
+        <button onClick={flipBoard}>🔄 Brett drehen</button>
         <div className="coords">
           Am Zug: {turn === "w" ? "Weiß" : "Schwarz"}
           {game.isCheck() ? " (Schach!)" : ""}
@@ -94,31 +96,73 @@ const Board: React.FC = () => {
         </div>
       </div>
 
-      <div className="board">
-        {RANKS.map((_, rIdx) =>
-          FILES.map((_, fIdx) => {
-            const coord = toCoord(fIdx, rIdx);
-            const sq = board[rIdx][fIdx];
-            const pieceChar = sq
-              ? PIECE_TO_UNICODE[
-                  sq.color === "w" ? sq.type.toUpperCase() : sq.type
-                ]
-              : undefined;
+      <div className="board-wrap">
+        {displayFiles.map((f, i) => (
+          <div
+            key={`t-${f}`}
+            className="axis"
+            style={{ gridColumn: i + 2, gridRow: 1 }}
+          >
+            {f}
+          </div>
+        ))}
+        {displayFiles.map((f, i) => (
+          <div
+            key={`b-${f}`}
+            className="axis"
+            style={{ gridColumn: i + 2, gridRow: 10 }}
+          >
+            {f}
+          </div>
+        ))}
+        {displayRanks.map((r, i) => (
+          <div
+            key={`l-${r}`}
+            className="axis"
+            style={{ gridColumn: 1, gridRow: i + 2 }}
+          >
+            {r}
+          </div>
+        ))}
+        {displayRanks.map((r, i) => (
+          <div
+            key={`r-${r}`}
+            className="axis"
+            style={{ gridColumn: 10, gridRow: i + 2 }}
+          >
+            {r}
+          </div>
+        ))}
 
-            return (
-              <Square
-                key={coord}
-                coord={coord}
-                isLight={isLightSquare(fIdx, rIdx)}
-                isSelected={selected === coord}
-                isMoveTarget={moveTargets.includes(coord)}
-                onClick={() => handleSquareClick(coord)}
-              >
-                {pieceChar}
-              </Square>
-            );
-          })
-        )}
+        <div className={`board ${flipped ? "flipped" : ""}`}>
+          {displayRanks.map((_, rIdx) =>
+            displayFiles.map((_, fIdx) => {
+              const { ri, fi } = internalIndex(rIdx, fIdx);
+              const coord = toCoord(rIdx, fIdx);
+              const sq = board[ri][fi];
+              const img = sq ? (
+                <img
+                  className="piece"
+                  alt={`${sq.color}${sq.type}`}
+                  src={pieceSrc(sq.color, sq.type)}
+                />
+              ) : null;
+
+              return (
+                <Square
+                  key={coord}
+                  coord={coord}
+                  isLight={isLightSquare(fi, ri)}
+                  isSelected={selected === coord}
+                  isMoveTarget={moveTargets.includes(coord)}
+                  onClick={() => handleSquareClick(coord)}
+                >
+                  {img}
+                </Square>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );

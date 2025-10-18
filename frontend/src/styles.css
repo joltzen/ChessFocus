@@ -1,21 +1,20 @@
 :root {
   --light: #f0d9b5;
-  --dark: #b58863;
+  --dark:  #b58863;
   --highlight: rgba(255, 215, 0, 0.6);
-  --move-dot: rgba(0, 0, 0, 0.25);
+  --move-dot: rgba(0,0,0,0.25);
   --sel: #4caf50;
   --board-gap: 4px;
-  --square-size: 72px; /* bei Bedarf anpassen */
+  --square-size: 72px;
+  --axis-size: 22px;     /* Außenkoordinaten */
+  --axis-color: #cbd5e1; /* Schriftfarbe der Achsen */
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter,
-    Arial;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial;
   background: #0f172a;
   color: #e2e8f0;
   display: grid;
@@ -23,35 +22,51 @@ body {
   min-height: 100vh;
 }
 
-.board {
+/* Gesamtes 10x10 Grid (8x8 Brett + Achsen) */
+.board-wrap {
   display: grid;
-  grid-template-columns: repeat(8, var(--square-size));
-  grid-template-rows: repeat(8, var(--square-size));
+  grid-template-columns: var(--axis-size) repeat(8, var(--square-size)) var(--axis-size);
+  grid-template-rows: var(--axis-size) repeat(8, var(--square-size)) var(--axis-size);
   gap: var(--board-gap);
   padding: var(--board-gap);
   background: #111827;
   border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
 }
 
+/* Achsenbeschriftung */
+.axis {
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  color: var(--axis-color);
+  opacity: 0.9;
+  user-select: none;
+}
+
+/* Das eigentliche 8x8-Brett in der Mitte */
+.board {
+  grid-column: 2 / span 8;
+  grid-row: 2 / span 8;
+
+  display: grid;
+  grid-template-columns: repeat(8, var(--square-size));
+  grid-template-rows: repeat(8, var(--square-size));
+  gap: var(--board-gap);
+}
+
+/* Felder */
 .square {
   display: grid;
   place-items: center;
   font-size: 42px;
   user-select: none;
   cursor: pointer;
-  border-radius: 10px;
   position: relative;
 }
 
-.square.light {
-  background: var(--light);
-  color: #111;
-}
-.square.dark {
-  background: var(--dark);
-  color: #111;
-}
+.square.light { background: var(--light); color: #111; }
+.square.dark  { background: var(--dark);  color: #111; }
 
 .square.selected {
   outline: 4px solid var(--sel);
@@ -67,18 +82,25 @@ body {
   display: block;
 }
 
-.coords {
-  margin-top: 14px;
-  font-size: 14px;
-  opacity: 0.8;
-  text-align: center;
+/* SVG-Figuren */
+.piece {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.25));
+  transition: transform 120ms ease, filter 120ms ease;
+  pointer-events: none;
 }
 
+/* Toolbar + Buttons */
 .toolbar {
   display: flex;
   gap: 8px;
   margin-bottom: 16px;
+  justify-content: center;
+  align-items: center;
 }
+
 button {
   background: #1f2937;
   color: #e5e7eb;
@@ -86,7 +108,28 @@ button {
   padding: 8px 12px;
   border-radius: 10px;
   cursor: pointer;
+  font-size: 14px;
 }
-button:hover {
-  background: #111827;
+
+
+.coords {
+  margin-top: 14px;
+  font-size: 14px;
+  opacity: 0.8;
+  text-align: center;
+}
+
+/* Brettrotation */
+.board-wrap {
+  transition: transform 0.5s ease;
+  transform-origin: center;
+}
+
+.board-wrap.flipped {
+  transform: rotate(180deg);
+}
+
+/* Figuren mitdrehen */
+.board-wrap.flipped .piece {
+  transform: rotate(180deg);
 }
