@@ -1,42 +1,29 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useBoardOrientation } from "../../hooks/useBoardOrientation";
+import { FILES } from "../../lib/chess/constants";
+import { isLightSquare } from "../../lib/chess/helpers";
+import { BoardFrame } from "../../components/board/BoardFrame";
+import { BoardGrid } from "../../components/board/BoardGrid";
+import type { Coord } from "../../lib/chess/constants";
 
-const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
-const RANKS_VIEW_TOP = [8, 7, 6, 5, 4, 3, 2, 1];
-const RANK_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8];
-
-type Coord = `${string}${number}`;
+const RANKS_FOR_TARGET = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 
 function randomTarget(): Coord {
   const f = FILES[Math.floor(Math.random() * 8)];
-  const r = RANK_NUMBERS[Math.floor(Math.random() * 8)];
+  const r = RANKS_FOR_TARGET[Math.floor(Math.random() * 8)];
   return `${f}${r}` as Coord;
 }
 
 export default function CoordBlitz() {
   const [active, setActive] = useState(false);
+  const [flipped, setFlipped] = useState(false);
+  const [showAxes, setShowAxes] = useState(false);
+  const { displayFiles, displayRanks, toCoord } = useBoardOrientation(flipped);
   const [target, setTarget] = useState<Coord>("e4");
   const [score, setScore] = useState(0);
   const [tries, setTries] = useState(0);
-  const [flipped, setFlipped] = useState(false);
-  const [showAxes, setShowAxes] = useState(false);
-  const [feedback, setFeedback] = useState<Record<string, "ok" | "err">>({});
+  const [flash, setFlash] = useState<Record<string, "ok" | "err">>({});
   const startedAt = useRef<number | null>(null);
-
-  const displayFiles = useMemo(
-    () => (flipped ? [...FILES].reverse() : FILES),
-    [flipped]
-  );
-  const displayRanks = useMemo(
-    () => (flipped ? [...RANKS_VIEW_TOP].reverse() : RANKS_VIEW_TOP),
-    [flipped]
-  );
-
-  function toCoord(fIdx: number, rIdx: number): Coord {
-    return `${displayFiles[fIdx]}${displayRanks[rIdx]}` as Coord;
-  }
-  function isLightSquare(fileIndex: number, rankIndex: number) {
-    return (fileIndex + rankIndex) % 2 === 0;
-  }
 
   function start() {
     setScore(0);
@@ -48,40 +35,39 @@ export default function CoordBlitz() {
   function stop() {
     setActive(false);
   }
-
-  function flash(c: Coord, kind: "ok" | "err", duration = 250) {
-    setFeedback((f) => ({ ...f, [c]: kind }));
+  function doFlash(c: Coord, k: "ok" | "err", d = 250) {
+    setFlash((f) => ({ ...f, [c]: k }));
     setTimeout(
       () =>
-        setFeedback((f) => {
-          const { [c]: _, ...rest } = f;
-          return rest;
+        setFlash((f) => {
+          const { [c]: _, ...r } = f;
+          return r;
         }),
-      duration
+      d
     );
   }
 
-  function handleSquareClick(c: Coord) {
+  function onClick(coord: Coord) {
     if (!active) return;
     setTries((t) => t + 1);
-    if (c === target) {
+    if (coord === target) {
       setScore((s) => s + 1);
-      flash(c, "ok");
+      doFlash(coord, "ok");
       setTimeout(() => setTarget(randomTarget()), 160);
     } else {
-      flash(c, "err");
+      doFlash(coord, "err");
     }
   }
 
   useEffect(() => {
-    function onKey(e: KeyboardEvent) {
+    const onKey = (e: KeyboardEvent) => {
       if (e.code === "Space") {
         e.preventDefault();
         active ? stop() : start();
       }
       if (e.key.toLowerCase() === "f") setFlipped((v) => !v);
       if (e.key.toLowerCase() === "a") setShowAxes((v) => !v);
-    }
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [active]);
@@ -102,76 +88,30 @@ export default function CoordBlitz() {
         </div>
       </div>
 
-      <div className="board-wrap">
-        {showAxes &&
-          displayFiles.map((f, i) => (
-            <div
-              key={`t-${f}`}
-              className="axis"
-              style={{ gridColumn: i + 2, gridRow: 1 }}
-            >
-              {f}
-            </div>
-          ))}
-        {showAxes &&
-          displayFiles.map((f, i) => (
-            <div
-              key={`b-${f}`}
-              className="axis"
-              style={{ gridColumn: i + 2, gridRow: 10 }}
-            >
-              {f}
-            </div>
-          ))}
-        {showAxes &&
-          displayRanks.map((r, i) => (
-            <div
-              key={`l-${r}`}
-              className="axis"
-              style={{ gridColumn: 1, gridRow: i + 2 }}
-            >
-              {r}
-            </div>
-          ))}
-        {showAxes &&
-          displayRanks.map((r, i) => (
-            <div
-              key={`r-${r}`}
-              className="axis"
-              style={{ gridColumn: 10, gridRow: i + 2 }}
-            >
-              {r}
-            </div>
-          ))}
-
-        <div className="board">
-          {displayRanks.map((_, rIdx) =>
-            displayFiles.map((_, fIdx) => {
-              const coord = toCoord(fIdx, rIdx);
-              const fb = feedback[coord];
-              const flashClass = fb
-                ? fb === "ok"
-                  ? "flash-ok"
-                  : "flash-err"
-                : "";
-              return (
-                <div
-                  key={coord}
-                  className={`square ${
-                    isLightSquare(fIdx, rIdx) ? "light" : "dark"
-                  } ${flashClass}`}
-                  onClick={() => handleSquareClick(coord)}
-                />
-              );
-            })
-          )}
-        </div>
-      </div>
-
-      <p className="coords" style={{ marginTop: 12, opacity: 0.75 }}>
-        Shortcuts: <kbd>Space</kbd> Start/Stop • <kbd>F</kbd> Flip •{" "}
-        <kbd>A</kbd> Koordinaten
-      </p>
+      <BoardFrame
+        showAxes={showAxes}
+        displayFiles={displayFiles}
+        displayRanks={displayRanks}
+      >
+        <BoardGrid
+          displayFiles={displayFiles}
+          displayRanks={displayRanks}
+          renderCell={(rIdx, fIdx) => {
+            const coord = toCoord(fIdx, rIdx) as Coord;
+            const fb = flash[coord];
+            const flashCls = fb ? (fb === "ok" ? "flash-ok" : "flash-err") : "";
+            return (
+              <div
+                key={coord}
+                className={`square ${
+                  isLightSquare(fIdx, rIdx) ? "light" : "dark"
+                } ${flashCls}`}
+                onClick={() => onClick(coord)}
+              />
+            );
+          }}
+        />
+      </BoardFrame>
     </div>
   );
 }

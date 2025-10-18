@@ -1,187 +1,108 @@
-import React, { useMemo, useState } from "react";
-import { Chess, Move } from "chess.js";
+// src/features/play-board/PlayBoard.tsx
+import { useState } from "react";
 import type { Square as Sq } from "chess.js";
+import { useBoardOrientation } from "../../hooks/useBoardOrientation";
+import { useChessGame } from "../../hooks/useChessGame";
+import { isLightSquare, pieceSrc } from "../../lib/chess/helpers";
+import { BoardFrame } from "../../components/board/BoardFrame";
+import { BoardGrid } from "../../components/board/BoardGrid";
+import Square from "../../components/board/Square";
 
-const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
-const RANKS = [8, 7, 6, 5, 4, 3, 2, 1];
-
-function isLightSquare(fileIndex: number, rankIndex: number) {
-  return (fileIndex + rankIndex) % 2 === 0;
-}
-
-function pieceSrc(color: "w" | "b", type: string) {
-  return `/pieces/${color}${type.toUpperCase()}.svg`;
-}
-
-const PlayBoard: React.FC = () => {
-  const [game, setGame] = useState(() => new Chess());
-  const [selected, setSelected] = useState<Sq | null>(null);
-  const [moveTargets, setMoveTargets] = useState<{
-    quiet: Sq[];
-    capture: Sq[];
-  }>({
+export default function PlayBoard() {
+  const [flipped, setFlipped] = useState(false);
+  const { displayFiles, displayRanks, mapIdx, toCoord } =
+    useBoardOrientation(flipped);
+  const {
+    board,
+    turn,
+    selected,
+    setSelected,
+    reset,
+    select,
+    legalTargets,
+    tryMove,
+  } = useChessGame();
+  const [targets, setTargets] = useState<{ quiet: Sq[]; capture: Sq[] }>({
     quiet: [],
     capture: [],
   });
-  const [flipped, setFlipped] = useState(false);
 
-  const board = useMemo(() => game.board(), [game]);
-  const turn = game.turn();
-
-  const displayFiles = flipped ? [...FILES].reverse() : FILES;
-  const displayRanks = flipped ? [...RANKS].reverse() : RANKS;
-
-  function internalIndex(rIdx: number, fIdx: number) {
-    const ri = flipped ? 7 - rIdx : rIdx;
-    const fi = flipped ? 7 - fIdx : fIdx;
-    return { ri, fi };
-  }
-  function toCoord(rIdx: number, fIdx: number): Sq {
-    const file = displayFiles[fIdx];
-    const rank = displayRanks[rIdx];
-    return `${file}${rank}` as Sq;
-  }
-
-  function handleSquareClick(target: Sq) {
+  function onSquareClick(coord: Sq) {
     if (!selected) {
-      const piece = game.get(target);
-      if (piece && piece.color === turn) {
-        setSelected(target);
-        const moves = game.moves({ square: target, verbose: true }) as Move[];
-        setMoveTargets({
-          quiet: moves.filter((m) => !m.captured).map((m) => m.to as Sq),
-          capture: moves.filter((m) => m.captured).map((m) => m.to as Sq),
-        });
-      } else {
-        setSelected(null);
-        setMoveTargets({ quiet: [], capture: [] });
-      }
+      if (select(coord)) setTargets(legalTargets(coord));
+      else setTargets({ quiet: [], capture: [] });
+      return;
+    }
+    if (coord === selected) {
+      setSelected(null);
+      setTargets({ quiet: [], capture: [] });
+      return;
+    }
+    if (tryMove(selected, coord)) {
+      setSelected(null);
+      setTargets({ quiet: [], capture: [] });
       return;
     }
 
-    if (selected === target) {
+    // ggf. Auswahl wechseln
+    if (select(coord)) setTargets(legalTargets(coord));
+    else {
       setSelected(null);
-      setMoveTargets({ quiet: [], capture: [] });
-      return;
+      setTargets({ quiet: [], capture: [] });
     }
-
-    const move = game.move({ from: selected, to: target, promotion: "q" });
-    if (move) {
-      setGame(new Chess(game.fen()));
-      setSelected(null);
-      setMoveTargets({ quiet: [], capture: [] });
-    } else {
-      const piece = game.get(target);
-      if (piece && piece.color === turn) {
-        setSelected(target);
-        const moves = game.moves({ square: target, verbose: true }) as Move[];
-        setMoveTargets({
-          quiet: moves.filter((m) => !m.captured).map((m) => m.to as Sq),
-          capture: moves.filter((m) => m.captured).map((m) => m.to as Sq),
-        });
-      } else {
-        setSelected(null);
-        setMoveTargets({ quiet: [], capture: [] });
-      }
-    }
-  }
-
-  function reset() {
-    setGame(new Chess());
-    setSelected(null);
-    setMoveTargets({ quiet: [], capture: [] });
-  }
-  function flipBoard() {
-    setFlipped((v) => !v);
   }
 
   return (
     <div>
       <div className="toolbar">
         <button onClick={reset}>♻️ Neu starten</button>
-        <button onClick={flipBoard}>🔄 Brett drehen</button>
+        <button onClick={() => setFlipped((v) => !v)}>🔄 Brett drehen</button>
         <div className="coords">
           Am Zug: {turn === "w" ? "Weiß" : "Schwarz"}
-          {game.isCheck() ? " (Schach!)" : ""}
-          {game.isGameOver() ? " • Partie beendet" : ""}
         </div>
       </div>
 
-      <div className="board-wrap">
-        {displayFiles.map((f, i) => (
-          <div
-            key={`t-${f}`}
-            className="axis"
-            style={{ gridColumn: i + 2, gridRow: 1 }}
-          >
-            {f}
-          </div>
-        ))}
-        {displayFiles.map((f, i) => (
-          <div
-            key={`b-${f}`}
-            className="axis"
-            style={{ gridColumn: i + 2, gridRow: 10 }}
-          >
-            {f}
-          </div>
-        ))}
-        {displayRanks.map((r, i) => (
-          <div
-            key={`l-${r}`}
-            className="axis"
-            style={{ gridColumn: 1, gridRow: i + 2 }}
-          >
-            {r}
-          </div>
-        ))}
-        {displayRanks.map((r, i) => (
-          <div
-            key={`r-${r}`}
-            className="axis"
-            style={{ gridColumn: 10, gridRow: i + 2 }}
-          >
-            {r}
-          </div>
-        ))}
+      <BoardFrame
+        showAxes
+        displayFiles={displayFiles}
+        displayRanks={displayRanks}
+      >
+        <BoardGrid
+          displayFiles={displayFiles}
+          displayRanks={displayRanks}
+          renderCell={(rIdx, fIdx) => {
+            const { ri, fi } = mapIdx(rIdx, fIdx);
+            const coord = toCoord(fIdx, rIdx) as Sq;
+            const sq = board[ri][fi];
+            const img = sq ? (
+              <img
+                className="piece"
+                alt={`${sq.color}${sq.type}`}
+                src={pieceSrc(sq.color, sq.type)}
+              />
+            ) : null;
 
-        <div className="board">
-          {displayRanks.map((_, rIdx) =>
-            displayFiles.map((_, fIdx) => {
-              const { ri, fi } = internalIndex(rIdx, fIdx);
-              const coord = toCoord(rIdx, fIdx);
-              const sq = board[ri][fi];
-              const img = sq ? (
-                <img
-                  className="piece"
-                  alt={`${sq.color}${sq.type}`}
-                  src={pieceSrc(sq.color, sq.type)}
-                />
-              ) : null;
+            const target = targets.capture.includes(coord)
+              ? "ring"
+              : targets.quiet.includes(coord)
+              ? "dot"
+              : undefined;
 
-              const isSelected = selected === coord;
-              const isQuietTarget = moveTargets.quiet.includes(coord);
-              const isCaptureTarget = moveTargets.capture.includes(coord);
-
-              return (
-                <div
-                  key={coord}
-                  className={`square ${
-                    isLightSquare(fi, ri) ? "light" : "dark"
-                  } ${isSelected ? "selected" : ""} ${
-                    isQuietTarget ? "target-dot" : ""
-                  } ${isCaptureTarget ? "target-circle" : ""}`}
-                  onClick={() => handleSquareClick(coord)}
-                >
-                  {img}
-                </div>
-              );
-            })
-          )}
-        </div>
-      </div>
+            return (
+              <Square
+                key={coord}
+                coord={coord}
+                light={isLightSquare(fi, ri)}
+                selected={selected === coord}
+                target={target}
+                onClick={() => onSquareClick(coord)}
+              >
+                {img}
+              </Square>
+            );
+          }}
+        />
+      </BoardFrame>
     </div>
   );
-};
-
-export default PlayBoard;
+}
