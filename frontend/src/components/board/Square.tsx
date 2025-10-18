@@ -1,12 +1,13 @@
-import { type ReactNode } from "react";
-
 type SquareProps = {
   coord: string;
   light: boolean;
   selected?: boolean;
   target?: "dot" | "ring";
+  lastFrom?: boolean;
+  lastTo?: boolean;
+  capturedFx?: boolean;
   onClick?: () => void;
-  children?: ReactNode;
+  children?: React.ReactNode;
 };
 
 export default function Square({
@@ -14,6 +15,9 @@ export default function Square({
   light,
   selected,
   target,
+  lastFrom,
+  lastTo,
+  capturedFx,
   onClick,
   children,
 }: SquareProps) {
@@ -23,6 +27,9 @@ export default function Square({
     selected ? "selected" : "",
     target === "dot" ? "target-dot" : "",
     target === "ring" ? "target-circle" : "",
+    lastFrom ? "last-from" : "",
+    lastTo ? "last-to" : "",
+    capturedFx ? "captured" : "",
   ]
     .filter(Boolean)
     .join(" ");

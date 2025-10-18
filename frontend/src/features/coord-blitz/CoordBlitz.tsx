@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useBoardOrientation } from "../../hooks/useBoardOrientation";
 import { FILES } from "../../lib/chess/constants";
+import { type Coord } from "../../lib/chess/constants";
 import { isLightSquare } from "../../lib/chess/helpers";
 import { BoardFrame } from "../../components/board/BoardFrame";
 import { BoardGrid } from "../../components/board/BoardGrid";
-import type { Coord } from "../../lib/chess/constants";
 
 const RANKS_FOR_TARGET = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 
@@ -25,6 +25,15 @@ export default function CoordBlitz() {
   const [flash, setFlash] = useState<Record<string, "ok" | "err">>({});
   const startedAt = useRef<number | null>(null);
 
+  function omit<T extends object, K extends keyof T>(
+    obj: T,
+    key: K
+  ): Omit<T, K> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { [key]: _removed, ...rest } = obj;
+    return rest;
+  }
+
   function start() {
     setScore(0);
     setTries(0);
@@ -35,16 +44,12 @@ export default function CoordBlitz() {
   function stop() {
     setActive(false);
   }
+
   function doFlash(c: Coord, k: "ok" | "err", d = 250) {
     setFlash((f) => ({ ...f, [c]: k }));
-    setTimeout(
-      () =>
-        setFlash((f) => {
-          const { [c]: _, ...r } = f;
-          return r;
-        }),
-      d
-    );
+    setTimeout(() => {
+      setFlash((f) => omit(f, c));
+    }, d);
   }
 
   function onClick(coord: Coord) {
@@ -63,7 +68,8 @@ export default function CoordBlitz() {
     const onKey = (e: KeyboardEvent) => {
       if (e.code === "Space") {
         e.preventDefault();
-        active ? stop() : start();
+        if (active) stop();
+        else start();
       }
       if (e.key.toLowerCase() === "f") setFlipped((v) => !v);
       if (e.key.toLowerCase() === "a") setShowAxes((v) => !v);
@@ -112,6 +118,11 @@ export default function CoordBlitz() {
           }}
         />
       </BoardFrame>
+
+      <p className="coords" style={{ marginTop: 12, opacity: 0.75 }}>
+        Shortcuts: <kbd>Space</kbd> Start/Stop • <kbd>F</kbd> Flip •{" "}
+        <kbd>A</kbd> Koordinaten
+      </p>
     </div>
   );
 }

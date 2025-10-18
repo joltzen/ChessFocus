@@ -5,7 +5,6 @@ export default function AppLayout() {
     <div className="shell">
       <aside className="sidebar">
         <div className="brand">♟️ Chess Trainer</div>
-
         <nav className="nav">
           <NavLink
             to="/play"
@@ -15,7 +14,6 @@ export default function AppLayout() {
           >
             ♟️ Freies Spiel
           </NavLink>
-
           <NavLink
             to="/coord-blitz"
             className={({ isActive }) =>
@@ -26,7 +24,6 @@ export default function AppLayout() {
           </NavLink>
         </nav>
       </aside>
-
       <main className="content">
         <Outlet />
       </main>

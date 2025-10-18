@@ -1,10 +1,8 @@
-import { type ReactNode } from "react";
-
 type FrameProps = {
   showAxes?: boolean;
   displayFiles: readonly string[];
   displayRanks: readonly number[];
-  children: ReactNode;
+  children: React.ReactNode;
 };
 
 export function BoardFrame({

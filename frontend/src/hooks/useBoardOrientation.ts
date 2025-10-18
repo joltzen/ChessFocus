@@ -13,7 +13,6 @@ export function useBoardOrientation(flipped: boolean) {
   );
 
   function mapIdx(rankIdx: number, fileIdx: number) {
-    // mappe Render-Index -> interner Index (0..7)
     const ri = flipped ? 7 - rankIdx : rankIdx;
     const fi = flipped ? 7 - fileIdx : fileIdx;
     return { ri, fi };

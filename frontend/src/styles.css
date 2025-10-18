@@ -1,177 +1,84 @@
+/*********************************************
+ * 1) CSS VARIABLES
+ *********************************************/
 :root {
   --light: #f0d9b5;
   --dark: #b58863;
   --highlight: rgba(255, 215, 0, 0.6);
   --move-dot: rgba(0, 0, 0, 0.25);
   --sel: #4caf50;
+
   --board-gap: 4px;
   --square-size: 72px;
-  --axis-size: 22px;     /* Außenkoordinaten */
-  --axis-color: #cbd5e1; /* Schriftfarbe der Achsen */
+
+  --axis-size: 22px;      /* Außenkoordinaten */
+  --axis-color: #cbd5e1;  /* Achsenfarbe */
 }
 
-* {
-  box-sizing: border-box;
-}
+
+/*********************************************
+ * 2) BASE / RESET
+ *********************************************/
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial;
   background: #0f172a;
   color: #e2e8f0;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
 }
 
-/* Gesamtes 10x10 Grid (8x8 Brett + Achsen) */
-.board-wrap {
-  display: grid;
-  grid-template-columns: var(--axis-size) repeat(8, var(--square-size)) var(--axis-size);
-  grid-template-rows: var(--axis-size) repeat(8, var(--square-size)) var(--axis-size);
-  gap: var(--board-gap);
-  padding: var(--board-gap);
-  background: #111827;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-  border-radius: 0;
+/* Optional light theme (kept for future use) */
+body.light {
+  background: #f9fafb;
+  color: #111827;
 }
 
-/* Achsenbeschriftung */
-.axis {
-  display: grid;
-  place-items: center;
-  font-size: 12px;
-  color: var(--axis-color);
-  opacity: 0.9;
-  user-select: none;
-}
 
-/* Das eigentliche 8x8-Brett in der Mitte */
-.board {
-  grid-column: 2 / span 8;
-  grid-row: 2 / span 8;
-  display: grid;
-  grid-template-columns: repeat(8, var(--square-size));
-  grid-template-rows: repeat(8, var(--square-size));
-  gap: var(--board-gap);
-  border-radius: 0;
-}
-
-/* Felder */
-.square {
-  display: grid;
-  place-items: center;
-  line-height: 0;
-  font-size: 0;
-  user-select: none;
-  cursor: pointer;
-  position: relative;
-  border-radius: 0;
-}
-
-.square.light {
-  background: var(--light);
-  color: #111;
-}
-
-.square.dark {
-  background: var(--dark);
-  color: #111;
-}
-
-.square.selected {
-  outline: 4px solid var(--sel);
-  outline-offset: -4px;
-}
-
-.square.highlight::after {
-  content: "";
-  width: 18px;
-  height: 18px;
-  background: var(--move-dot);
-  border-radius: 50%;
-  display: block;
-}
-
-/* SVG-Figuren */
-.piece {
-  display: block; /* entfernt Baseline-Gap */
-  width: 80%;
-  height: 80%;
-  margin: auto;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
-  transition: transform 120ms ease, filter 120ms ease;
-  pointer-events: none;
-}
-
-/* Toolbar + Buttons */
-.toolbar {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-  justify-content: center;
-  align-items: center;
-}
-
-button {
-  background: #1f2937;
-  color: #e5e7eb;
-  border: 1px solid #374151;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-button:hover {
-  background: #111827;
-}
-
-.coords {
-  margin-top: 14px;
-  font-size: 14px;
-  opacity: 0.8;
-  text-align: center;
-}
-
-/* --- App Shell & Sidebar --- */
+/*********************************************
+ * 3) APP LAYOUT (SHELL / SIDEBAR / CONTENT)
+ *********************************************/
 .shell {
+  min-height: 100vh;
   display: grid;
   grid-template-columns: 260px 1fr;
-  min-height: 100vh;
 }
 
 .sidebar {
-  background: #0b1220;
-  border-right: 1px solid #1f2937;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 14px;
+
+  background: #0b1220;
+  border-right: 1px solid #1f2937;
 }
 
 .brand {
+  padding: 8px 0 12px;
+  margin-bottom: 8px;
+
   font-weight: 700;
   letter-spacing: 0.3px;
-  padding: 8px 0 12px;
+
   border-bottom: 1px solid #1f2937;
-  margin-bottom: 8px;
 }
 
-.nav {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+.nav { display: flex; flex-direction: column; gap: 6px; }
 
 .nav-item {
   padding: 10px 12px;
-  border-radius: 6px;
-  border: 1px solid transparent;
+
   color: #e5e7eb;
   text-decoration: none;
   background: #111827;
+
+  border: 1px solid transparent;
+  border-radius: 6px;
 }
 
 .nav-item:hover {
@@ -180,58 +87,268 @@ button:hover {
 }
 
 .nav-item.active {
-  border-color: #3b82f6;
   background: #0b1730;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25) inset;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.25) inset;
 }
 
 .content {
   flex: 1;
+  min-height: 100vh;
+  padding: 24px;
+
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 24px;
+
   overflow: auto;
-  min-height: 100vh;
   box-sizing: border-box;
 }
 
-/* Coord Blitz Feedback */
-.square.flash-ok {
-  box-shadow: inset 0 0 0 4px #22c55e;
-  outline: 4px solid #22c55e;
-  outline-offset: -4px;
+
+/*********************************************
+ * 4) BOARD WRAPPER + AXES
+ *********************************************/
+.board-wrap {
+  padding: var(--board-gap);
+  display: grid;
+  grid-template-columns: var(--axis-size) repeat(8, var(--square-size)) var(--axis-size);
+  grid-template-rows: var(--axis-size) repeat(8, var(--square-size)) var(--axis-size);
+  gap: var(--board-gap);
+
+  background: #111827;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
-.square.flash-err {
-  box-shadow: inset 0 0 0 4px #ef4444;
-  outline: 4px solid #ef4444;
-  outline-offset: -4px;
+.axis {
+  display: grid;
+  place-items: center;
+
+  user-select: none;
+  font-size: 12px;
+  color: var(--axis-color);
+  opacity: 0.9;
 }
 
-/* Pixel-Smoothing für gleichmäßige Linien */
-.board,
-.board-wrap,
+
+/*********************************************
+ * 5) BOARD GRID (8x8)
+ *********************************************/
+.board {
+  grid-column: 2 / span 8;
+  grid-row: 2 / span 8;
+
+  display: grid;
+  grid-template-columns: repeat(8, var(--square-size));
+  grid-template-rows: repeat(8, var(--square-size));
+  gap: var(--board-gap);
+}
+
+
+/*********************************************
+ * 6) SQUARES (FELDER) + STATES
+ *********************************************/
 .square {
-  -webkit-font-smoothing: antialiased;
+  position: relative;
+
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+
+  /* eliminate inline content artifacts */
+  line-height: 0;
+  font-size: 0;
+
+  border-radius: 0;
+  transition: filter 0.1s ease;
 }
 
-/* Zielpunkte (leere Felder) */
+.square:hover { filter: brightness(1.05); }
+
+.square.light { background: var(--light); color: #111; }
+.square.dark  { background: var(--dark);  color: #111; }
+
+.square.selected {
+  outline: 4px solid var(--sel);
+  outline-offset: -4px;
+}
+
+/* Move targets */
 .square.target-dot::after {
   content: "";
+  display: block;
+
   width: 18px;
   height: 18px;
+
   background: var(--move-dot);
   border-radius: 50%;
-  display: block;
 }
 
-/* Schlagzüge: Kreis über der gegnerischen Figur */
 .square.target-circle::after {
   content: "";
   position: absolute;
-  inset: 6px;               /* Ring-Abstand zum Rand, bei Bedarf anpassen */
-  border: 4px solid rgba(0,0,0,0.35);
+  inset: 6px;
+
+  border: 4px solid rgba(0, 0, 0, 0.35);
   border-radius: 50%;
   pointer-events: none;
+}
+
+/* Last move highlight */
+.square.last-from { background: #f5f38f !important; }
+.square.last-to   { background: #fafad2 !important; }
+
+/* CoordBlitz feedback flashes */
+.square.flash-ok {
+  outline: 4px solid #22c55e;
+  outline-offset: -4px;
+  box-shadow: inset 0 0 0 4px #22c55e;
+}
+
+.square.flash-err {
+  outline: 4px solid #ef4444;
+  outline-offset: -4px;
+  box-shadow: inset 0 0 0 4px #ef4444;
+}
+
+
+/*********************************************
+ * 7) PIECES
+ *********************************************/
+.piece {
+  display: block;          /* remove baseline gap */
+  width: 80%;
+  height: 80%;
+  margin: auto;
+
+  object-fit: contain;
+  pointer-events: none;
+
+  transition: transform 150ms ease-in-out, opacity 150ms ease;
+  will-change: transform, opacity;
+}
+
+
+/*********************************************
+ * 8) ANIMATIONS (CAPTURE POP)
+ *********************************************/
+@keyframes captureFade {
+  0%   { transform: scale(1);    opacity: 1; }
+  100% { transform: scale(1.15); opacity: 0; }
+}
+
+.square.captured .piece { animation: captureFade 0.2s forwards; }
+
+
+/*********************************************
+ * 9) TOOLBAR / BUTTONS / INFO
+ *********************************************/
+.toolbar {
+  margin-bottom: 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+button {
+  padding: 8px 12px;
+
+  color: #e5e7eb;
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 6px;
+
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover { background: #111827; }
+
+.coords {
+  margin-top: 14px;
+
+  text-align: center;
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+
+/*********************************************
+ * 10) MOVE LIST
+ *********************************************/
+.move-list {
+  min-width: 140px;
+  max-height: calc(var(--square-size) * 8 + var(--board-gap) * 7 + 8px);
+  padding: 8px 12px;
+
+  color: #e5e7eb;
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 6px;
+
+  overflow-y: auto;
+
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+.move-list-title {
+  margin-bottom: 6px;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+/* tabular layout */
+.move-table {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.move-header,
+.move-row {
+  display: grid;
+  grid-template-columns: 30px 60px 60px;
+  align-items: center;
+  padding: 2px 0;
+}
+
+.move-header {
+  margin-bottom: 4px;
+  font-weight: 600;
+  border-bottom: 1px solid #253046;
+}
+
+.move-row { border-bottom: 1px dashed #253046; }
+.move-row:last-child { border-bottom: 0; }
+
+.move-row span     { text-align: left; }
+.move-row .num     { opacity: 0.8;  }
+
+
+/*********************************************
+ * 11) MODAL (GAME OVER)
+ *********************************************/
+.overlay {
+  position: absolute;
+  inset: 0;
+
+  display: grid;
+  place-items: center;
+
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.modal {
+  padding: 18px 22px;
+
+  color: #fff;
+  text-align: center;
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 8px;
 }
