@@ -7,30 +7,29 @@ import { BoardFrame } from "../../components/board/BoardFrame";
 import { BoardGrid } from "../../components/board/BoardGrid";
 
 const RANKS_FOR_TARGET = [1, 2, 3, 4, 5, 6, 7, 8] as const;
-
 type Mode = "time" | "items";
 const DURATION_SEC = 60;
 const ITEMS_TARGET = 20;
 
-function randomTarget(): Coord {
+const randomTarget = (): Coord => {
   const f = FILES[Math.floor(Math.random() * 8)];
   const r = RANKS_FOR_TARGET[Math.floor(Math.random() * 8)];
   return `${f}${r}` as Coord;
-}
+};
 
-type Trial = { coord: Coord; rt: number }; 
+type Trial = { coord: Coord; rt: number };
 
 export default function CoordBlitz() {
-  /** Board-Ansicht */
+  // View / Toggles
   const [flipped, setFlipped] = useState(false);
   const [showAxes, setShowAxes] = useState(false);
   const [showHeat, setShowHeat] = useState(false);
 
-  /** Session-Steuerung */
+  // Mode / Session state
   const [mode, setMode] = useState<Mode>("time");
   const [active, setActive] = useState(false);
 
-  /** Ziele & Metriken */
+  // Task + metrics
   const [target, setTarget] = useState<Coord>("e4");
   const targetSince = useRef<number | null>(null);
 
@@ -40,14 +39,12 @@ export default function CoordBlitz() {
   const [errors, setErrors] = useState<Partial<Record<Coord, number>>>({});
   const [flash, setFlash] = useState<Record<string, "ok" | "err">>({});
 
-  /** Mode-Tracking */
   const [timeLeft, setTimeLeft] = useState(DURATION_SEC);
   const [itemsLeft, setItemsLeft] = useState(ITEMS_TARGET);
 
-  /** Orientierung + Koordinaten */
   const { displayFiles, displayRanks, toCoord } = useBoardOrientation(flipped);
 
-  /** Berechnete Kennzahlen */
+  // Derived
   const accuracy = useMemo(
     () => (tries ? Math.round((correct / tries) * 100) : 0),
     [tries, correct]
@@ -68,8 +65,8 @@ export default function CoordBlitz() {
     [trials]
   );
 
-  /** Reset für neue Session */
-  function resetSessionState() {
+  // Session helpers
+  const resetSessionState = () => {
     setTries(0);
     setCorrect(0);
     setTrials([]);
@@ -80,18 +77,14 @@ export default function CoordBlitz() {
     const nxt = randomTarget();
     setTarget(nxt);
     targetSince.current = performance.now();
-  }
-
-  function start() {
+  };
+  const start = () => {
     resetSessionState();
     setActive(true);
-  }
+  };
+  const stop = () => setActive(false);
 
-  function stop() {
-    setActive(false);
-  }
-
-  /** Timer für Zeitmodus */
+  // Timer
   useEffect(() => {
     if (!active || mode !== "time") return;
     const startTs = performance.now();
@@ -110,17 +103,15 @@ export default function CoordBlitz() {
     return () => cancelAnimationFrame(rafId);
   }, [active, mode]);
 
-  /** Kurzes Aufblitzen für Feedback */
-  function doFlash(c: Coord, kind: "ok" | "err", d = 180) {
+  // Feedback flash
+  const doFlash = (c: Coord, kind: "ok" | "err", d = 180) => {
     setFlash((f) => ({ ...f, [c]: kind }));
-    setTimeout(() => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      setFlash(({ [c]: _, ...rest }) => rest);
-    }, d);
-  }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setTimeout(() => setFlash(({ [c]: _, ...rest }) => rest), d);
+  };
 
-  /** Klick-Logik */
-  function onClick(coord: Coord) {
+  // Clicks
+  const onClick = (coord: Coord) => {
     if (!active) return;
     setTries((t) => t + 1);
 
@@ -138,8 +129,6 @@ export default function CoordBlitz() {
           return next;
         });
       }
-
-      // neues Ziel
       const nxt = randomTarget();
       setTarget(nxt);
       targetSince.current = performance.now();
@@ -147,15 +136,14 @@ export default function CoordBlitz() {
       setErrors((prev) => ({ ...prev, [coord]: (prev[coord] ?? 0) + 1 }));
       doFlash(coord, "err");
     }
-  }
+  };
 
-  /** Tastatursteuerung */
+  // Keyboard
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.code === "Space") {
         e.preventDefault();
-        if (active) stop();
-        else start();
+        active ? stop() : start();
       }
       if (e.key.toLowerCase() === "f") setFlipped((v) => !v);
       if (e.key.toLowerCase() === "a") setShowAxes((v) => !v);
@@ -165,27 +153,24 @@ export default function CoordBlitz() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
 
-  /** Heatmap-Farben */
+  // Heat style
   const maxErr = useMemo(() => Math.max(0, ...Object.values(errors)), [errors]);
-  function heatStyle(coord: Coord): React.CSSProperties | undefined {
-    if (!showHeat) return undefined;
+  const heatStyle = (coord: Coord): React.CSSProperties | undefined => {
+    if (!showHeat) return;
     const n = errors[coord] ?? 0;
-    if (!n || !maxErr) return undefined;
+    if (!n || !maxErr) return;
     const alpha = Math.min(0.6, 0.2 + 0.4 * (n / maxErr));
     return { boxShadow: `inset 0 0 0 9999px rgba(239,68,68,${alpha})` };
-  }
+  };
 
-  /** UI-Helfer */
   const taskText = target.toUpperCase();
   const progressPct =
     mode === "time"
       ? 100 - Math.min(100, Math.round((timeLeft / 60) * 100))
       : Math.round(((ITEMS_TARGET - itemsLeft) / ITEMS_TARGET) * 100);
 
-  /** --- UI --- */
   return (
     <div className="cb">
       {/* Toolbar */}
@@ -249,7 +234,7 @@ export default function CoordBlitz() {
         </div>
       </div>
 
-      {/* Main Area: Board + Stats */}
+      {/* Main */}
       <div className="cb-main">
         <div className="cb-card cb-board-card">
           <BoardFrame
@@ -318,7 +303,6 @@ export default function CoordBlitz() {
               <span className="l">worst</span>
             </div>
           </div>
-
           <div className="cb-help">
             <div className="keys">
               <span>Space</span> Start/Stop • <span>F</span> Flip •{" "}
@@ -329,7 +313,7 @@ export default function CoordBlitz() {
         </aside>
       </div>
 
-      {/* Session-Ergebnis */}
+      {/* Session result */}
       {!active && tries > 0 && (
         <div className="cb-summary-card">
           <h4>Session beendet</h4>

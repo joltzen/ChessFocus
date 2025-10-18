@@ -3,6 +3,7 @@ import AppLayout from "./layouts/AppLayout";
 import CoordBlitz from "./features/coord-blitz/CoordBlitz";
 import PlayBoard from "./features/play-board/PlayBoard";
 import Appearance from "./features/appearance/Appearance";
+import KnightRoutes from "./features/knight-routes/KnightRoutes";
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
         <Route path="/play" element={<PlayBoard />} />
         <Route path="/coord-blitz" element={<CoordBlitz />} />
         <Route path="/appearance" element={<Appearance />} />
+        <Route path="/knight-routes" element={<KnightRoutes />} />
       </Route>
     </Routes>
   );

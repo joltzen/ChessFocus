@@ -23,6 +23,14 @@ export default function AppLayout() {
             🧭 Coord Blitz
           </NavLink>
           <NavLink
+            to="/knight-routes"
+            className={({ isActive }) =>
+              "nav-item" + (isActive ? " active" : "")
+            }
+          >
+            🐎 Knight Routes
+          </NavLink>
+          <NavLink
             to="/appearance"
             className={({ isActive }) =>
               "nav-item" + (isActive ? " active" : "")
