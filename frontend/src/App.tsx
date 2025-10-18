@@ -8,9 +8,6 @@ export default function App() {
       <Route element={<AppLayout />}>
         <Route index element={<Navigate to="/coord-blitz" replace />} />
         <Route path="/coord-blitz" element={<CoordBlitz />} />
-        {/* Platz für weitere Trainings: */}
-        {/* <Route path="/pattern-vision" element={<PatternVision />} /> */}
-        {/* <Route path="/endgame-trainer" element={<EndgameTrainer />} /> */}
       </Route>
     </Routes>
   );

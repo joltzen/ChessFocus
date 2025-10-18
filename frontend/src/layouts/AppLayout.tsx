@@ -15,10 +15,6 @@ export default function AppLayout() {
           >
             🧭 Coord Blitz
           </NavLink>
-
-          {/* weitere Buttons/Links */}
-          {/* <NavLink to="/pattern-vision" className={({isActive}) => "nav-item" + (isActive ? " active" : "")}>🧩 Pattern Vision</NavLink> */}
-          {/* <NavLink to="/endgame-trainer" className={({isActive}) => "nav-item" + (isActive ? " active" : "")}>🏁 Endgame Trainer</NavLink> */}
         </nav>
       </aside>
 
