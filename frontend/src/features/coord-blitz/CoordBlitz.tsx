@@ -6,7 +6,6 @@ import { isLightSquare } from "../../lib/chess/helpers";
 import { BoardFrame } from "../../components/board/BoardFrame";
 import { BoardGrid } from "../../components/board/BoardGrid";
 
-/** feste Ränge für Ziele (1..8) */
 const RANKS_FOR_TARGET = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 
 type Mode = "time" | "items";

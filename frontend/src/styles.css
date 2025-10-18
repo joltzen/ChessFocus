@@ -235,6 +235,10 @@ body.light {
   will-change: transform, opacity;
 }
 
+.piece-draggable {
+  pointer-events: auto;
+}
+
 
 /*********************************************
  * 8) ANIMATIONS (CAPTURE POP)
