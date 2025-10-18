@@ -6,9 +6,12 @@ import { isLightSquare, pieceSrc } from "../../lib/chess/helpers";
 import { BoardFrame } from "../../components/board/BoardFrame";
 import { BoardGrid } from "../../components/board/BoardGrid";
 import Square from "../../components/board/Square";
+import { useAppearance } from "../../context/AppearanceContext";
 
 export default function PlayBoard() {
   const [flipped, setFlipped] = useState(false);
+  const { pieceSet } = useAppearance();
+
   const { displayFiles, displayRanks, mapIdx, toCoord } =
     useBoardOrientation(flipped);
   const {
@@ -135,7 +138,9 @@ export default function PlayBoard() {
                 <img
                   className="piece"
                   alt={`${sq.color}${sq.type}`}
-                  src={pieceSrc(sq.color, sq.type)}
+                  src={`/pieces/${pieceSet}/${
+                    sq.color
+                  }${sq.type.toUpperCase()}.svg`}
                 />
               ) : null;
 

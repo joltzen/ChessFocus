@@ -22,6 +22,14 @@ export default function AppLayout() {
           >
             🧭 Coord Blitz
           </NavLink>
+          <NavLink
+            to="/appearance"
+            className={({ isActive }) =>
+              "nav-item" + (isActive ? " active" : "")
+            }
+          >
+            🎨 Appearance
+          </NavLink>
         </nav>
       </aside>
       <main className="content">
