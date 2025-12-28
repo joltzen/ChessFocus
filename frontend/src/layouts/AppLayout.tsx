@@ -23,20 +23,28 @@ export default function AppLayout() {
             🧭 Coord Blitz
           </NavLink>
           <NavLink
-            to="/knight-routes"
-            className={({ isActive }) =>
-              "nav-item" + (isActive ? " active" : "")
-            }
-          >
-            🐎 Knight Routes
-          </NavLink>
-          <NavLink
             to="/appearance"
             className={({ isActive }) =>
               "nav-item" + (isActive ? " active" : "")
             }
           >
             🎨 Appearance
+          </NavLink>
+          <NavLink
+            to="/blind"
+            className={({ isActive }) =>
+              "nav-item" + (isActive ? " active" : "")
+            }
+          >
+            🕶 Blind Chess
+          </NavLink>
+          <NavLink
+            to="/color-guesser"
+            className={({ isActive }) =>
+              "nav-item" + (isActive ? " active" : "")
+            }
+          >
+            ⬜⬛ Color Guesser
           </NavLink>
         </nav>
       </aside>

@@ -274,3 +274,9 @@ button:hover { background: #111827; }
   .board-area { grid-template-columns: 1fr; }
   .move-list { order: 2; max-width: 100%; min-width: 0; }
 }
+
+.board-area.blind .move-list-title::after {
+  content: " (blind)";
+  opacity: .7;
+  font-weight: 400;
+}
